@@ -1,8 +1,6 @@
-import {Component, OnInit, TemplateRef} from '@angular/core';
-import {FormBuilder, FormGroup, Validators} from '@angular/forms';
-import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
+import {Component, OnInit} from '@angular/core';
+import { FireAuthService } from './services/fire-auth.service';
 
-import {FireBaseService, IEmployee} from './services/fire-base.service';
 
 @Component({
   selector: 'app-root',
@@ -10,63 +8,38 @@ import {FireBaseService, IEmployee} from './services/fire-base.service';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent implements OnInit {
-
-  public form: FormGroup;
-
-  public employeeList: IEmployee[] = [];
-  public employeeDetails: IEmployee;
-
+  
+  isSignedIn=false
+  
   constructor(
-    private fb: FormBuilder,
-    private modalService: NgbModal,
-    private fireBaseService: FireBaseService
+    public fireAuthService: FireAuthService
   ) {
   }
 
   ngOnInit(): void {
-    this.getEmployees();
+    if (localStorage.getItem('user')!==null)
+    this.isSignedIn=true
+    else  
+    this.isSignedIn=false 
+    
   }
 
-  getEmployees(): void {
-    this.fireBaseService.getEmployees().subscribe((res) => {
-      this.employeeList = res.map((employee) => {
-        return {
-          ...employee.payload.doc.data(),
-          id: employee.payload.doc.id
-        } as IEmployee;
-      });
-    });
+  async onSignup(email:string, password:string){
+    await this.fireAuthService.signup(email,password)
+    if (this.fireAuthService.isLoggedIn)
+    this.isSignedIn=true
+
   }
-
-  openModal(content: TemplateRef<any>, employeeId: string): void {
-    this.employeeDetails = this.employeeList.find((employee: IEmployee) => employee.id === employeeId);
-
-    this.formInit(this.employeeDetails);
-    this.modalService.open(content, {backdrop: 'static', centered: true});
+  async onSignin(email:string, password:string){
+    await this.fireAuthService.signin(email,password)
+    if (this.fireAuthService.isLoggedIn)
+    this.isSignedIn=true
+    
   }
+  handleLogout(){
+    this.isSignedIn=false
+    
 
-  formInit(data: IEmployee): void {
-    this.form = this.fb.group({
-      name: [data ? data.name : '', Validators.required],
-      email: [data ? data.email : '',
-        Validators.compose([
-          Validators.required,
-          Validators.pattern(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/)
-        ])
-      ]
-    });
-  }
-
-  addEmployee(): void {
-    this.fireBaseService.addEmployee(this.form.value).then();
-  }
-
-  updateEmployee(employeeId: string): void {
-    this.fireBaseService.updateEmployee(employeeId, this.form.value).then();
-  }
-
-  deleteEmployee(employeeId: string): void {
-    this.fireBaseService.deleteEmployee(employeeId).then();
   }
 
 }

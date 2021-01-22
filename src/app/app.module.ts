@@ -7,10 +7,14 @@ import {AngularFirestoreModule} from '@angular/fire/firestore';
 
 import {AppComponent} from './app.component';
 import {environment} from '../environments/environment';
+import { HomeComponent } from './home/home.component';
+import { FireAuthService } from './services/fire-auth.service';
+import { AngularFireAuthModule } from '@angular/fire/auth';
 
 @NgModule({
   declarations: [
-    AppComponent
+    AppComponent,
+    HomeComponent
   ],
   imports: [
     BrowserModule,
@@ -18,9 +22,10 @@ import {environment} from '../environments/environment';
     ReactiveFormsModule,
     NgbModule,
     AngularFireModule.initializeApp(environment.firebaseConfig),
+    AngularFireAuthModule,
     AngularFirestoreModule
   ],
-  providers: [],
+  providers: [FireAuthService],
   bootstrap: [AppComponent]
 })
 export class AppModule {
